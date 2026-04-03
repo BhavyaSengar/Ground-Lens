@@ -3,41 +3,57 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GroundLens | Anti-Gravity Marketplace</title>
+
+    <!-- PWA Setup -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GroundLens">
+    <link rel="apple-touch-icon" href="./icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script type="importmap">
       {
         "imports": {
-          "motion": "https://esm.sh/motion"
+          "motion": "https://esm.sh/motion@11"
         }
       }
     </script>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs — Full modules -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+        import {
+            getAuth, GoogleAuthProvider, signInWithPopup,
+            signInWithEmailAndPassword, createUserWithEmailAndPassword,
+            updateProfile, onAuthStateChanged, signOut
+        } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+        import {
+            getFirestore, doc, setDoc, getDoc, addDoc, getDocs,
+            collection, query, where, orderBy, serverTimestamp, updateDoc, increment, onSnapshot
+        } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
-        // Expose Firebase to window for app.js to use
         window.firebaseModules = {
-            initializeApp,
-            getAuth,
-            GoogleAuthProvider,
-            signInWithPopup
+            initializeApp, getAuth, getFirestore, GoogleAuthProvider,
+            signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+            updateProfile, onAuthStateChanged, signOut,
+            doc, setDoc, updateDoc, getDoc, addDoc, getDocs,
+            collection, query, where, orderBy, serverTimestamp, increment, onSnapshot 
         };
     </script>
-</head>
 
+</head>
 <body>
     <div id="app">
         <!-- Navigation -->
         <nav class="glass-nav"
-            style="background: var(--nav-bg); border-bottom: 1px solid var(--glass-border-subtle); padding: 1.2rem 4rem;">
+            style="background: var(--nav-bg); border-bottom: 1px solid var(--glass-border-subtle); padding: 1.2rem 2rem;">
             <div class="logo" style="display: flex; align-items: center; gap: 0.8rem; cursor: pointer;">
                 <div
                     style="background: var(--brand-cyan); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-inverse); font-size: 1.2rem; box-shadow: 0 0 15px var(--brand-cyan-glow);">
@@ -53,10 +69,6 @@
             </div>
 
             <div style="display:flex; align-items:center; gap: 1.5rem; justify-content: flex-end;" id="nav-actions">
-                <button id="theme-toggle" class="btn-magnetic"
-                    style="background:transparent; border:1px solid var(--glass-border-subtle); border-radius:50%; width: 40px; height: 40px; display:flex; align-items:center; justify-content:center; font-size: 1.1rem; color:var(--text-main); cursor: pointer; transition: all 0.3s ease;">
-                    <i class="fa-solid fa-moon"></i>
-                </button>
                 <div id="nav-profile" style="display:flex; align-items:center; gap: 1.5rem;">
                     <!-- Profile snippet or login actions injected by JS -->
                 </div>
@@ -64,7 +76,7 @@
 
         </nav>
 
-        <main id="main-content" class="content-container slide-up-anim">
+        <main id="main-content" class="content-container">
             <!-- Dynamic content swapped here by JS -->
         </main>
 
@@ -86,24 +98,19 @@
                 </div>
 
                 <h1 class="hero-title"
-                    style="margin-bottom: 1.5rem; font-size: 4.5rem; font-weight: 800; letter-spacing: -2px; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.8), 0 0 15px rgba(168, 85, 247, 0.5);">
-                    <span class="hero-word" style="display:inline-block; position: relative; z-index: 2;">See
-                        anywhere,</span><br>
-                    <span class="hero-word"
-                        style="display:inline-block; position: relative; z-index: 2;">instantly.</span>
+                    style="margin-bottom: 1.5rem; font-size: 3.5rem; font-weight: 800; letter-spacing: -1.5px; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.8), 0 0 15px rgba(168, 85, 247, 0.5); line-height: 1.1;">
+                    <span class="hero-word" style="display:inline-block; position: relative; z-index: 2; opacity: 1;">Get on-demand photos</span><br>
+                    <span class="hero-word" style="display:inline-block; position: relative; z-index: 2; opacity: 1;">and videos of any physical</span><br>
+                    <span class="hero-word" style="display:inline-block; position: relative; z-index: 2; opacity: 1;">location within minutes.</span>
                 </h1>
                 <p class="hero-subtitle"
                     style="margin-bottom: 2.5rem; margin-left: auto; margin-right: auto; font-size: 1.25rem; color: var(--text-muted); max-width: 600px; line-height: 1.6;">
-                    Request real-time photos and videos of any location through our trusted scout network.
+                    Drop a pin on our map and a nearby Scout will capture the exact visual evidence you need.
                 </p>
                 <div class="hero-buttons" style="display:flex; justify-content:center; gap:1.5rem; flex-wrap: wrap;">
                     <button class="btn-primary ripple-button btn-magnetic role-btn" data-role="user"
                         style="padding:1.2rem 2.5rem; font-size:1.1rem; border-radius:12px; font-weight: 600; box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);">
                         Request Ground View
-                    </button>
-                    <button class="btn-magnetic ripple-button role-btn" data-role="doer"
-                        style="padding:1.2rem 2.5rem; font-size:1.1rem; border-radius:12px; background:rgba(255,255,255,0.05); border: 1px solid var(--glass-border-strong); font-weight: 600; color: var(--text-main);">
-                        Become a Scout
                     </button>
                 </div>
             </div>
@@ -131,53 +138,7 @@
                 </div>
             </div>
 
-            <!-- Stats Bar Section -->
-            <div class="motion-section"
-                style="max-width: 1000px; margin: 2rem auto 4rem; padding: 0 1rem; position: relative; z-index: 20;">
-                <div class="glass-card"
-                    style="background: rgba(10, 10, 10, 0.95); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 2rem 0; display: flex; align-items: center; justify-content: space-around; backdrop-filter: blur(12px); box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
-
-                    <div style="flex: 1; text-align: center; border-right: 1px solid rgba(255, 255, 255, 0.05);">
-                        <div style="color: #fbbf24; font-size: 1.1rem; margin-bottom: 0.8rem;"><i
-                                class="fa-solid fa-circle-check"></i></div>
-                        <div
-                            style="color: #fbbf24; font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -1px;">
-                            12,400+</div>
-                        <div style="color: var(--text-muted); font-size: 0.75rem; font-weight: 500;">Tasks Completed
-                        </div>
-                    </div>
-
-                    <div style="flex: 1; text-align: center; border-right: 1px solid rgba(255, 255, 255, 0.05);">
-                        <div style="color: #fbbf24; font-size: 1.1rem; margin-bottom: 0.8rem;"><i
-                                class="fa-solid fa-users"></i></div>
-                        <div
-                            style="color: #fbbf24; font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -1px;">
-                            3,200+</div>
-                        <div style="color: var(--text-muted); font-size: 0.75rem; font-weight: 500;">Active Doers</div>
-                    </div>
-
-                    <div style="flex: 1; text-align: center; border-right: 1px solid rgba(255, 255, 255, 0.05);">
-                        <div style="color: #fbbf24; font-size: 1.1rem; margin-bottom: 0.8rem;"><i
-                                class="fa-regular fa-star"></i></div>
-                        <div
-                            style="color: #fbbf24; font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -1px;">
-                            98%</div>
-                        <div style="color: var(--text-muted); font-size: 0.75rem; font-weight: 500;">Satisfaction Rate
-                        </div>
-                    </div>
-
-                    <div style="flex: 1; text-align: center;">
-                        <div style="color: #fbbf24; font-size: 1.1rem; margin-bottom: 0.8rem;"><i
-                                class="fa-regular fa-clock"></i></div>
-                        <div
-                            style="color: #fbbf24; font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -1px;">
-                            8 min</div>
-                        <div style="color: var(--text-muted); font-size: 0.75rem; font-weight: 500;">Avg. Response Time
-                        </div>
-                    </div>
-
-                </div>
-            </div>
+            <!-- Stats Removed for Credibility -->
 
             <!-- New Problem Section -->
             <div class="motion-section"
@@ -203,9 +164,11 @@
                         </div>
                         <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main);">
                             Distance Barrier</h3>
-                        <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem;">You need to check a
-                            property or location in another city, but cannot justify the time or expense to travel there
-                            yourself.</p>
+                        <ul style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; text-align: left; padding-left: 1.5rem; margin: 0;">
+                            <li>Traveling wastes time</li>
+                            <li>High inspection costs</li>
+                            <li>Delayed feedback</li>
+                        </ul>
                     </div>
 
                     <!-- Problem Card 2 -->
@@ -218,9 +181,11 @@
                         </div>
                         <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main);">
                             Outdated Data</h3>
-                        <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem;">Street view maps and
-                            listing photos are often months or years out of date. You want to verify real-time ground
-                            reality today.</p>
+                        <ul style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; text-align: left; padding-left: 1.5rem; margin: 0;">
+                            <li>Old street views</li>
+                            <li>Misleading photos</li>
+                            <li>Hidden ground reality</li>
+                        </ul>
                     </div>
 
                     <!-- Problem Card 3 -->
@@ -233,9 +198,11 @@
                         </div>
                         <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main);">
                             Decision Risk</h3>
-                        <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem;">Making expensive
-                            remote decisions—like buying real estate or verifying a shipment—without true visibility
-                            creates massive financial risk.</p>
+                        <ul style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; text-align: left; padding-left: 1.5rem; margin: 0;">
+                            <li>Blind remote decisions</li>
+                            <li>Massive financial risk</li>
+                            <li>Lack of visual proof</li>
+                        </ul>
                     </div>
 
                 </div>
@@ -261,13 +228,12 @@
 
                         <h2
                             style="font-size: 3rem; font-weight: 700; color: var(--text-main); line-height: 1.1; margin-bottom: 1.5rem; letter-spacing: -1px;">
-                            GroundLens gives you eyes on the ground.
+                            We give you eyes on the ground.
                         </h2>
 
                         <p
                             style="font-size: 1.15rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 2.5rem; max-width: 500px;">
-                            Post a request, nearby scouts capture real-time visuals, and receive verified ground reality
-                            within minutes.
+                            Connect with our global network of Scouts for immediate visual confirmation anywhere.
                         </p>
 
                         <ul
@@ -275,27 +241,24 @@
                             <li style="display: flex; align-items: flex-start; gap: 1rem;">
                                 <div style="color: var(--brand-cyan); margin-top: 0.2rem;"><i
                                         class="fa-solid fa-circle-check"></i></div>
-                                <div><strong style="color: var(--text-main); font-size: 1.05rem;">Instant
-                                        Requests</strong>
-                                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem;">Drop a
-                                        pin anywhere in the world.</p>
+                                <div><strong style="color: var(--text-main); font-size: 1.05rem;">Instant Deployment</strong>
+                                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem;">Drop a pin to instantly route requests.</p>
                                 </div>
                             </li>
                             <li style="display: flex; align-items: flex-start; gap: 1rem;">
                                 <div style="color: var(--brand-cyan); margin-top: 0.2rem;"><i
                                         class="fa-solid fa-circle-check"></i></div>
-                                <div><strong style="color: var(--text-main); font-size: 1.05rem;">Trusted
-                                        Network</strong>
+                                <div><strong style="color: var(--text-main); font-size: 1.05rem;">Untampered Media</strong>
                                     <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem;">
-                                        Thousands of verified scouts ready to act.</p>
+                                        Authentic photo and video evidence directly from the source.</p>
                                 </div>
                             </li>
                             <li style="display: flex; align-items: flex-start; gap: 1rem;">
                                 <div style="color: var(--brand-cyan); margin-top: 0.2rem;"><i
                                         class="fa-solid fa-circle-check"></i></div>
-                                <div><strong style="color: var(--text-main); font-size: 1.05rem;">GPS Secured</strong>
+                                <div><strong style="color: var(--text-main); font-size: 1.05rem;">Cryptographically Secured</strong>
                                     <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem;">
-                                        Cryptographically verified time and location data.</p>
+                                        Location and time tracking are embedded securely.</p>
                                 </div>
                             </li>
                         </ul>
@@ -354,6 +317,108 @@
                 </div>
             </div>
 
+            <!-- Use Cases Section -->
+            <div id="use-cases" class="motion-section"
+                style="max-width: 1200px; margin: 8rem auto 6rem; padding: 0 1rem; position: relative; z-index: 10;">
+                <div style="text-align: center; margin-bottom: 4rem;">
+                    <p
+                        style="font-size: 1.1rem; font-weight: 700; color: var(--primary-light); letter-spacing: 2px; margin-bottom: 1rem; text-transform: uppercase;">
+                        Use Cases</p>
+                    <h2 style="font-size: 2.8rem; font-weight: 700; color: var(--text-main); line-height: 1.2;">
+                        Who uses GroundLens?
+                    </h2>
+                </div>
+
+                <div class="features-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+
+                    <!-- Use Case 1 -->
+                    <div class="glass-card hover-lift"
+                        style="background: rgba(15, 23, 42, 0.6); padding: 2.5rem 2rem; display: flex; flex-direction: column; align-items: flex-start; text-align: left;">
+                        <div
+                            style="width: 50px; height: 50px; border-radius: 12px; background: rgba(99, 102, 241, 0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: #818cf8; font-size: 1.5rem;">
+                            <i class="fa-solid fa-building"></i>
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main);">
+                            Real Estate Buyers</h3>
+                        <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; margin: 0;">
+                            Verify actual ground reality and neighborhood conditions before committing to a site visit or purchase.
+                        </p>
+                    </div>
+
+                    <!-- Use Case 2 -->
+                    <div class="glass-card hover-lift"
+                        style="background: rgba(15, 23, 42, 0.6); padding: 2.5rem 2rem; display: flex; flex-direction: column; align-items: flex-start; text-align: left;">
+                        <div
+                            style="width: 50px; height: 50px; border-radius: 12px; background: rgba(56, 189, 248, 0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: #38bdf8; font-size: 1.5rem;">
+                            <i class="fa-solid fa-plane-departure"></i>
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main);">
+                            Travel Planners</h3>
+                        <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; margin: 0;">
+                            Check current local weather, unexpected crowds, and conditions before booking a trip or arriving.
+                        </p>
+                    </div>
+
+                    <!-- Use Case 3 -->
+                    <div class="glass-card hover-lift"
+                        style="background: rgba(15, 23, 42, 0.6); padding: 2.5rem 2rem; display: flex; flex-direction: column; align-items: flex-start; text-align: left;">
+                        <div
+                            style="width: 50px; height: 50px; border-radius: 12px; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: #34d399; font-size: 1.5rem;">
+                            <i class="fa-solid fa-house-user"></i>
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main);">
+                            NRIs & Expats</h3>
+                        <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; margin: 0;">
+                            Get immediate visual updates on your hometown, remote properties, or relatives' neighborhoods.
+                        </p>
+                    </div>
+
+                    <!-- Use Case 4 -->
+                    <div class="glass-card hover-lift"
+                        style="background: rgba(15, 23, 42, 0.6); padding: 2.5rem 2rem; display: flex; flex-direction: column; align-items: flex-start; text-align: left;">
+                        <div
+                            style="width: 50px; height: 50px; border-radius: 12px; background: rgba(245, 158, 11, 0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: #fbbf24; font-size: 1.5rem;">
+                            <i class="fa-solid fa-store"></i>
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main);">
+                            Business Audits</h3>
+                        <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; margin: 0;">
+                            Obtain competitor store photos, verify retail displays, and capture local market intelligence instantly.
+                        </p>
+                    </div>
+
+                    <!-- Use Case 5 -->
+                    <div class="glass-card hover-lift"
+                        style="background: rgba(15, 23, 42, 0.6); padding: 2.5rem 2rem; display: flex; flex-direction: column; align-items: flex-start; text-align: left;">
+                        <div
+                            style="width: 50px; height: 50px; border-radius: 12px; background: rgba(239, 68, 68, 0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: #f87171; font-size: 1.5rem;">
+                            <i class="fa-solid fa-file-shield"></i>
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main);">
+                            Insurance Claims</h3>
+                        <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; margin: 0;">
+                            Quickly gather authentic, watermarked site verification photos to speed up claim processing.
+                        </p>
+                    </div>
+
+                    <!-- Use Case 6 -->
+                    <div class="glass-card hover-lift"
+                        style="background: rgba(15, 23, 42, 0.6); padding: 2.5rem 2rem; display: flex; flex-direction: column; align-items: flex-start; text-align: left;">
+                        <div
+                            style="width: 50px; height: 50px; border-radius: 12px; background: rgba(168, 85, 247, 0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: #c084fc; font-size: 1.5rem;">
+                            <i class="fa-solid fa-newspaper"></i>
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main);">
+                            Journalism & Media</h3>
+                        <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; margin: 0;">
+                            Source immediate, raw ground-level visual evidence from remote or developing breaking news areas.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
             <!-- New Workflow Section -->
             <div id="how-it-works" class="motion-section"
                 style="max-width: 1200px; margin: 8rem auto 6rem; padding: 0 1rem; position: relative; z-index: 10;">
@@ -409,53 +474,42 @@
                         id="scroll-steps-container">
 
                         <div class="step-card" data-step="1">
-                            <div
-                                style="width: 60px; height: 60px; border-radius: 50%; background: #0f172a; border: 2px solid var(--glass-border-strong); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--brand-cyan); box-shadow: 0 0 30px rgba(56, 189, 248, 0.2) inset; animation: pulseGlow 3s infinite;">
-                                1</div>
-                            <h3
-                                style="font-size: 1.5rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.8rem;">
-                                Post Request</h3>
-                            <p style="font-size: 1.1rem; color: var(--text-muted); line-height: 1.5;">Drop a coordinate
-                                pin, define instructions, and set your bounty price.</p>
+                            <div style="width: 60px; height: 60px; border-radius: 50%; background: #0f172a; border: 2px solid var(--glass-border-strong); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--brand-cyan); box-shadow: 0 0 30px rgba(56, 189, 248, 0.2) inset; animation: pulseGlow 3s infinite;">
+                                <i class="fa-solid fa-location-crosshairs"></i>
+                            </div>
+                            <h3 style="font-size: 1.5rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.8rem;">
+                                Define Target</h3>
+                            <p style="font-size: 1.1rem; color: var(--text-muted); line-height: 1.5;">Drop a pin and outline your media requirements along with the bounty price.</p>
                         </div>
 
                         <div class="step-card" data-step="2">
-                            <div
-                                style="width: 60px; height: 60px; border-radius: 50%; background: #0f172a; border: 2px solid var(--glass-border-strong); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--brand-cyan); box-shadow: 0 0 30px rgba(56, 189, 248, 0.2) inset; animation: pulseGlow 3s infinite 0.75s;">
-                                2</div>
-                            <h3
-                                style="font-size: 1.5rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.8rem;">
-                                Scout Notified</h3>
-                            <p style="font-size: 1.1rem; color: var(--text-muted); line-height: 1.5;">Our algorithm
-                                matches local verified Doers to your location instantly.</p>
+                            <div style="width: 60px; height: 60px; border-radius: 50%; background: #0f172a; border: 2px solid var(--glass-border-strong); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--brand-cyan); box-shadow: 0 0 30px rgba(56, 189, 248, 0.2) inset; animation: pulseGlow 3s infinite 0.75s;">
+                                <i class="fa-solid fa-street-view"></i>
+                            </div>
+                            <h3 style="font-size: 1.5rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.8rem;">
+                                Match Scout</h3>
+                            <p style="font-size: 1.1rem; color: var(--text-muted); line-height: 1.5;">Our system alerts the nearest available Scout instantly.</p>
                         </div>
 
                         <div class="step-card" data-step="3">
-                            <div
-                                style="width: 60px; height: 60px; border-radius: 50%; background: #0f172a; border: 2px solid var(--glass-border-strong); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--brand-cyan); box-shadow: 0 0 30px rgba(56, 189, 248, 0.2) inset; animation: pulseGlow 3s infinite 1.5s;">
-                                3</div>
-                            <h3
-                                style="font-size: 1.5rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.8rem;">
-                                Media Captured</h3>
-                            <p style="font-size: 1.1rem; color: var(--text-muted); line-height: 1.5;">Doer travels to
-                                the spot and securely captures photos or videos within the app.</p>
+                            <div style="width: 60px; height: 60px; border-radius: 50%; background: #0f172a; border: 2px solid var(--glass-border-strong); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--brand-cyan); box-shadow: 0 0 30px rgba(56, 189, 248, 0.2) inset; animation: pulseGlow 3s infinite 1.5s;">
+                                <i class="fa-solid fa-camera"></i>
+                            </div>
+                            <h3 style="font-size: 1.5rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.8rem;">
+                                Capture Media</h3>
+                            <p style="font-size: 1.1rem; color: var(--text-muted); line-height: 1.5;">The Scout securely records photos or video on-site using our specialized app.</p>
                         </div>
 
                         <div class="step-card" data-step="4">
-                            <div
-                                style="width: 60px; height: 60px; border-radius: 50%; background: #0f172a; border: 2px solid var(--glass-border-strong); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--primary-light); box-shadow: 0 0 30px rgba(168, 85, 247, 0.2) inset; border-color: var(--primary-light); animation: pulseGlow 3s infinite 2.25s;">
+                            <div style="width: 60px; height: 60px; border-radius: 50%; background: #0f172a; border: 2px solid var(--glass-border-strong); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--primary-light); box-shadow: 0 0 30px rgba(168, 85, 247, 0.2) inset; border-color: var(--primary-light); animation: pulseGlow 3s infinite 2.25s;">
                                 <i class="fa-solid fa-check"></i>
                             </div>
-                            <h3
-                                style="font-size: 1.5rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.8rem;">
-                                Ground View</h3>
-                            <p style="font-size: 1.1rem; color: var(--text-muted); line-height: 1.5;">You receive the
-                                cryptographically verified media and the Doer gets paid.</p>
+                            <h3 style="font-size: 1.5rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.8rem;">
+                                Review & Pay</h3>
+                            <p style="font-size: 1.1rem; color: var(--text-muted); line-height: 1.5;">You receive the media; the Scout earns the bounty.</p>
                         </div>
 
-                    </div>
-                </div>
-            </div>
+                    </div> </div> </div> 
 
             <!-- Scout Network Section -->
             <div class="motion-section"
@@ -568,92 +622,9 @@
 
 
 
-            <!-- Value Proposition (3-Grid) -->
-            <div style="text-align:center;">
-                <p
-                    style="font-size:1.1rem; color:var(--text-muted); line-height:1.7; margin: 0 auto 4rem; max-width: 700px;">
-                    Need a real-time photo of a remote location? Want to earn money by checking nearby spots? GroundLens
-                    connects Users with remote Doers instantly.
-                </p>
 
-                <div
-                    style="display: flex; flex-direction: row; justify-content: center; max-width: 1200px; margin: 0 auto; gap: 2rem; flex-wrap: wrap;">
-                    <div class="glass-card trust-card hover-lift"
-                        style="text-align: center; align-items: center; padding: 2.5rem; background: var(--glass-bg-solid); border: 1px solid var(--glass-border-strong); flex: 1; min-width: 250px;">
-                        <div class="trust-icon-box"
-                            style="background: transparent; margin-bottom: 1rem; margin-left: auto; margin-right: auto;">
-                            <i class="fa-solid fa-earth-americas"
-                                style="font-size:2.5rem; color:var(--brand-indigo); text-shadow: 0 0 20px var(--brand-indigo-glow)"></i>
-                        </div>
-                        <h3 style="font-size:1.3rem; margin-bottom:0.5rem; font-weight:700;">Request Anywhere</h3>
-                        <p style="font-size:0.95rem; text-align:center;">Drop a pin anywhere in the world and request a
-                            real-time photo or short video.</p>
-                    </div>
-
-                    <div class="glass-card trust-card hover-lift"
-                        style="text-align: center; align-items: center; padding: 2.5rem; background: var(--glass-bg-solid); border: 1px solid var(--glass-border-strong); flex: 1; min-width: 250px;">
-                        <div class="trust-icon-box"
-                            style="background: transparent; margin-bottom: 1rem; margin-left: auto; margin-right: auto;">
-                            <i class="fa-solid fa-wallet"
-                                style="font-size:2.5rem; color:#10b981; text-shadow: 0 0 20px rgba(16, 185, 129, 0.5)"></i>
-                        </div>
-                        <h3 style="font-size:1.3rem; margin-bottom:0.5rem; font-weight:700;">Earn on the Go</h3>
-                        <p style="font-size:0.95rem; text-align:center;">Accept nearby tasks, capture verified media,
-                            and get paid instantly.</p>
-                    </div>
-
-                    <div class="glass-card trust-card hover-lift"
-                        style="text-align: center; align-items: center; padding: 2.5rem; background: var(--glass-bg-solid); border: 1px solid var(--glass-border-strong); flex: 1; min-width: 250px;">
-                        <div class="trust-icon-box"
-                            style="background: transparent; margin-bottom: 1rem; margin-left: auto; margin-right: auto;">
-                            <i class="fa-solid fa-shield"
-                                style="font-size:2.5rem; color:#ef4444; text-shadow: 0 0 20px rgba(239, 68, 68, 0.5)"></i>
-                        </div>
-                        <h3 style="font-size:1.3rem; margin-bottom:0.5rem; font-weight:700;">Verified Trust</h3>
-                        <p style="font-size:0.95rem; text-align:center;">Our in-app camera ensures all media includes
-                            GPS and timestamp overlays.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Full Width Section Divider -->
             <hr class="section-divider"
                 style="margin: 8rem -50vw; border: none; border-top: 1px solid var(--glass-border-subtle); width: 100vw; position: relative; left: 50%;">
-
-            <!-- About Section -->
-            <div
-                style="max-width: 1200px; margin: 0 auto; position: relative; display: flex; align-items: center; justify-content: space-between; gap: 4rem;">
-
-                <div style="flex: 1; text-align: left;">
-                    <p
-                        style="font-size:1.1rem; font-weight:700; color:var(--primary-light); letter-spacing:2px; margin-bottom:1rem; text-transform: uppercase;">
-                        About Us
-                    </p>
-                    <h2 style="font-size:2.5rem; margin-bottom:1.5rem;">The Future of Verifiable Location Data</h2>
-
-                    <p style="font-size:1.1rem; color:var(--text-muted); line-height:1.7; margin-bottom: 1.5rem;">
-                        GroundLens was built to solve a fundamental problem: how do you trust what you see on the
-                        internet
-                        when you can't be there in person? We are a decentralized network of active Doers equipped with
-                        cryptographic capture technology, bridging the gap between digital requests and physical
-                        reality.
-                    </p>
-                    <p style="font-size:1.1rem; color:var(--text-muted); line-height:1.7;">
-                        Whether you are auditing a remote real estate property, verifying local retail displays, or
-                        checking
-                        on weather conditions, GroundLens guarantees tamper-proof, real-time visual evidence from
-                        anywhere
-                        on the map in a matter of minutes.
-                    </p>
-                </div>
-
-                <div style="flex: 1; text-align: right;">
-                    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1470&auto=format&fit=crop"
-                        alt="Decentralized Doer Network"
-                        style="max-width: 100%; border-radius: 16px; box-shadow: 0 10px 30px var(--shadow-main); border: 1px solid var(--glass-border-subtle);">
-                </div>
-            </div>
-
 
 
             <!-- Massive Dark Background Split -->
@@ -665,58 +636,37 @@
                     <p
                         style="font-size:1.1rem; font-weight:700; color:var(--accent); letter-spacing:2px; margin-bottom:1rem; text-transform: uppercase;">
                         Platform Features</p>
-                    <h2 style="font-size:2.5rem; margin-bottom:1rem;">Built for Trust & Verification</h2>
+                    <h2 style="font-size:2.5rem; margin-bottom:1rem;">Built for absolute certainty</h2>
                     <p class="hero-subtitle"
                         style="font-size:1.1rem; margin-bottom: 3rem; margin-left:auto; margin-right:auto;">
-                        Every feature designed to ensure authentic, tamper-proof task delivery.
+                        Every feature is designed to ensure authentic, tamper-proof task delivery.
                     </p>
 
                     <div class="trust-grid">
+                        <div class="glass-card hover-lift trust-card">
+                            <div class="trust-icon-box" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+                                <i class="fa-solid fa-camera"></i>
+                            </div>
+                            <h3>In-App Camera Only</h3>
+                            <p>Blocked gallery uploads prevent spoofed or old images. All media is captured fresh.</p>
+                        </div>
+
                         <div class="glass-card hover-lift trust-card">
                             <div class="trust-icon-box"
                                 style="background: rgba(245, 158, 11, 0.1); color: var(--accent);">
                                 <i class="fa-solid fa-location-dot"></i>
                             </div>
-                            <h3>Location-Based Matching</h3>
-                            <p>Tasks are automatically matched to the nearest available Doers, ensuring fast completion.
-                            </p>
-                        </div>
-
-                        <div class="glass-card hover-lift trust-card">
-                            <div class="trust-icon-box" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
-                                <i class="fa-solid fa-camera"></i>
-                            </div>
-                            <h3>Verified Media Capture</h3>
-                            <p>In-app camera with automatic GPS and timestamp watermarks. No gallery uploads allowed.
-                            </p>
+                            <h3>GPS Watermarking</h3>
+                            <p>Every file contains embedded, unalterable location and timestamp tracking data.</p>
                         </div>
 
                         <div class="glass-card hover-lift trust-card">
                             <div class="trust-icon-box"
                                 style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
-                                <i class="fa-regular fa-shield-check"></i> <!-- Using alternative shield -->
-                                <i class="fa-solid fa-shield"></i>
+                                <i class="fa-solid fa-lock"></i>
                             </div>
-                            <h3>Trust Score System</h3>
-                            <p>Every Doer maintains a 0-100 trust score based on completion rate and user ratings.</p>
-                        </div>
-
-                        <div class="glass-card hover-lift trust-card">
-                            <div class="trust-icon-box"
-                                style="background: rgba(245, 158, 11, 0.1); color: var(--accent);">
-                                <i class="fa-solid fa-bolt"></i>
-                            </div>
-                            <h3>Real-Time Notifications</h3>
-                            <p>Instant task invitations and status updates keep everyone in the loop.</p>
-                        </div>
-
-                        <div class="glass-card hover-lift trust-card">
-                            <div class="trust-icon-box"
-                                style="background: rgba(245, 158, 11, 0.1); color: var(--accent);">
-                                <i class="fa-solid fa-dollar-sign"></i>
-                            </div>
-                            <h3>Secure Wallet System</h3>
-                            <p>Payments are held in escrow and released only after task approval.</p>
+                            <h3>Escrow Payments</h3>
+                            <p>Funds are securely held and released only after you explicitly approve the delivery.</p>
                         </div>
 
                         <div class="glass-card hover-lift trust-card">
@@ -724,8 +674,8 @@
                                 style="background: rgba(99, 102, 241, 0.1); color: var(--primary-light);">
                                 <i class="fa-regular fa-star"></i>
                             </div>
-                            <h3>Rating & Reviews</h3>
-                            <p>Mutual rating system ensures accountability and quality on both sides.</p>
+                            <h3>Scout Accountability</h3>
+                            <p>Quality is strictly enforced through a robust mutual rating and review ecosystem.</p>
                         </div>
                     </div>
                 </div>
@@ -736,116 +686,60 @@
                 style="margin: 6rem -50vw; border: none; border-top: 1px solid var(--glass-border-subtle); width: 100vw; position: relative; left: 50%;">
 
             <!-- Testimonials Block -->
-            <div style="text-align:center; max-width: 1400px; margin: 0 auto; width: 95%;" id="testimonials">
-                <p
-                    style="font-size:1.1rem; font-weight:700; color:var(--primary-light); letter-spacing:2px; margin-bottom:1rem; text-transform: uppercase;">
-                    Wall of Love</p>
-                <h2 style="font-size:2.5rem; margin-bottom:1rem;">What Our Users Say</h2>
-                <p class="hero-subtitle"
-                    style="font-size:1.1rem; margin-bottom: 3rem; margin-left:auto; margin-right:auto;">
-                    Don't just take our word for it. Here is what people are experiencing on GroundLens.
-                </p>
-
-                <div class="features-grid"
-                    style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; text-align: left;">
-                    <div class="glass-card hover-lift text-left testimonial-card">
-                        <div style="display:flex; color: #fbbf24; margin-bottom: 1rem; font-size: 0.9rem;">
-                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
-                                class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
-                                class="fa-solid fa-star"></i>
-                        </div>
-                        <p style="font-size:1rem; font-style:italic; margin-bottom:1.5rem; color:var(--text-main);">"I
-                            needed a photo of a construction site across the country to verify progress before a
-                            meeting. A local Doer uploaded verified GPS photos in under 15 minutes. Pure magic."</p>
-                        <div style="display:flex; align-items:center; gap:1rem;">
-                            <div
-                                style="width:40px; height:40px; border-radius:50%; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">
-                                S</div>
-                            <div>
-                                <strong style="display:block; font-size:0.95rem;">Sarah Jenkins</strong>
-                                <span style="font-size:0.8rem; color:var(--text-muted);">Real Estate Developer</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="glass-card hover-lift text-left testimonial-card">
-                        <div style="display:flex; color: #fbbf24; margin-bottom: 1rem; font-size: 0.9rem;">
-                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
-                                class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
-                                class="fa-solid fa-star"></i>
-                        </div>
-                        <p style="font-size:1rem; font-style:italic; margin-bottom:1.5rem; color:var(--text-main);">
-                            "Since joining as a Doer, I've made over $400 just by snapping photos of store displays and
-                            local landmarks while running my daily errands. The instant payouts are fantastic."</p>
-                        <div style="display:flex; align-items:center; gap:1rem;">
-                            <div
-                                style="width:40px; height:40px; border-radius:50%; background: linear-gradient(135deg, var(--accent), #b45309); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">
-                                M</div>
-                            <div>
-                                <strong style="display:block; font-size:0.95rem;">Marcus T.</strong>
-                                <span style="font-size:0.8rem; color:var(--text-muted);">Verified Doer</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="glass-card hover-lift text-left testimonial-card">
-                        <div style="display:flex; color: #fbbf24; margin-bottom: 1rem; font-size: 0.9rem;">
-                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
-                                class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
-                                class="fa-solid fa-star"></i>
-                        </div>
-                        <p style="font-size:1rem; font-style:italic; margin-bottom:1.5rem; color:var(--text-main);">"The
-                            cryptographic GPS watermarking gives us complete confidence that the data we are requesting
-                            is authentic. We use GroundLens exclusively for all our compliance checks now."</p>
-                        <div style="display:flex; align-items:center; gap:1rem;">
-                            <div
-                                style="width:40px; height:40px; border-radius:50%; background: linear-gradient(135deg, var(--success), #065f46); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">
-                                D</div>
-                            <div>
-                                <strong style="display:block; font-size:0.95rem;">David Chen</strong>
-                                <span style="font-size:0.8rem; color:var(--text-muted);">Operations Manager</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div style="text-align:center; max-width: 900px; margin: 0 auto; width: 95%;" id="testimonials">
+    <p style="font-size:1.1rem; font-weight:700; color:var(--primary-light); letter-spacing:2px; margin-bottom:1rem; text-transform: uppercase;">
+        Early Access
+    </p>
+    <h2 style="font-size:2.5rem; margin-bottom:1rem;">Be our first verified user.</h2>
+    <p class="hero-subtitle" style="font-size:1.1rem; margin-bottom: 2.5rem; margin-left:auto; margin-right:auto;">
+        GroundLens is in active development. Join the waitlist and get priority access when we launch.
+    </p>
+    <div style="display:flex; gap:0.75rem; max-width:480px; margin:0 auto; flex-wrap:wrap; justify-content:center;">
+        <input type="email" id="waitlist-email" placeholder="your@email.com"
+            style="flex:1; min-width:220px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); color:#f8fafc; padding:1rem 1.2rem; border-radius:12px; font-size:1rem; outline:none;"
+            onfocus="this.style.borderColor='var(--brand-cyan)'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'">
+        <button onclick="submitWaitlist()" 
+            style="background:linear-gradient(135deg,#06b6d4,#8b5cf6); color:white; border:none; padding:1rem 1.8rem; border-radius:12px; font-weight:600; font-size:1rem; cursor:pointer;">
+            Join Waitlist
+        </button>
+    </div>
+    <p id="waitlist-msg" style="margin-top:1rem; font-size:0.85rem; color:var(--text-muted); min-height:1.2rem;"></p>
+</div>
 
             <!-- Massive Dark Background CTA & Footer -->
             <div
                 style="background: var(--bg-dark); width: 100vw; position: relative; left: 50%; transform: translateX(-50%); padding-top: 6rem; margin-top: 6rem; border-top: 1px solid var(--glass-border-subtle); display: flex; flex-direction: column; align-items: center;">
 
                 <!-- CTA Section -->
-                <div
-                    style="text-align: center; max-width: 800px; margin: 0 auto 6rem; padding: 0 2rem; position: relative;">
-                    <!-- New Gradient Glow Background -->
-                    <div
-                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 300px; background: radial-gradient(ellipse, rgba(168, 85, 247, 0.25) 0%, transparent 70%); z-index: 0; pointer-events: none; border-radius: 50%;">
-                    </div>
+                <div id="lux-cta" style="text-align: center; max-width: 1000px; margin: 0 auto 6rem; padding: 0 2rem; position: relative; width: 100%;">
+                        
+                        <div style="position: relative; background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-top: 1px solid rgba(255, 255, 255, 0.2); border-radius: 30px; padding: 5rem 2rem; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 0 30px rgba(255,255,255,0.02); backdrop-filter: blur(20px);">
+                            
+                            <div style="position: absolute; top: -50%; left: -10%; width: 50%; height: 200%; background: radial-gradient(ellipse, rgba(6, 182, 212, 0.15) 0%, transparent 70%); transform: rotate(30deg); pointer-events: none;"></div>
+                            <div style="position: absolute; bottom: -50%; right: -10%; width: 50%; height: 200%; background: radial-gradient(ellipse, rgba(168, 85, 247, 0.15) 0%, transparent 70%); transform: rotate(-30deg); pointer-events: none;"></div>
 
-                    <div style="position: relative; z-index: 1;">
-                        <div
-                            style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.2); padding: 0.5rem 1rem; border-radius: 50px; font-size: 0.85rem; color: #c084fc; margin-bottom: 2rem;">
-                            <i class="fa-solid fa-bolt"></i> Join 15,000+ users
+                            <div style="position: relative; z-index: 1;">
+                                <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem 1.2rem; border-radius: 50px; font-size: 0.85rem; color: #e2e8f0; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                                    <i class="fa-solid fa-bolt" style="color: var(--brand-cyan);"></i> On-Demand Network
+                                </div>
+
+                                <h2 style="font-size: 3.8rem; font-weight: 800; margin-bottom: 1.5rem; line-height: 1.1; letter-spacing: -1px; background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                    Need to see a location <span style="background: linear-gradient(135deg, var(--brand-cyan), var(--brand-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">now?</span>
+                                </h2>
+
+                                <p style="font-size: 1.25rem; color: #94a3b8; line-height: 1.7; margin-bottom: 3rem; max-width: 500px; margin-left: auto; margin-right: auto;">
+                                    Post your first GroundLens request today and get verified visual truth in minutes.
+                                </p>
+
+                                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                                    <button class="btn-magnetic hover-lift" onclick="renderView('registerForm')"
+                                        style="background: linear-gradient(135deg, #06b6d4, #8b5cf6); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 1.2rem 3rem; border-radius: 50px; font-size: 1.15rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; box-shadow: 0 15px 35px rgba(139, 92, 246, 0.4), inset 0 2px 5px rgba(255,255,255,0.3); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                                        Deploy a Scout <i class="fa-solid fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-
-                        <h2
-                            style="font-size: 3.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text-main); line-height: 1.1;">
-                            Need to see a location now?
-                        </h2>
-
-                        <p
-                            style="font-size: 1.25rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 3rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-                            Post your first GroundLens request today.
-                        </p>
-
-                        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                            <button class="btn-magnetic ripple-button" onclick="renderView('registerForm')"
-                                style="background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; border: none; padding: 1.2rem 2.5rem; border-radius: 16px; font-size: 1.15rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; box-shadow: 0 10px 30px rgba(168, 85, 247, 0.5); transition: all 0.3s ease;">
-                                Request Ground View <i class="fa-solid fa-arrow-right"></i>
-                            </button>
-                        </div>
                     </div>
-                </div>
 
                 <!-- Minimal Premium Footer -->
                 <footer
@@ -871,15 +765,15 @@
 
                         <!-- Center: Links -->
                         <div style="display: flex; gap: 2rem; align-items: center;">
-                            <a href="#"
+                            <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;"
                                 style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s;"
                                 onmouseover="this.style.color='var(--text-main)'"
-                                onmouseout="this.style.color='var(--text-muted)'">About</a>
-                            <a href="#"
+                                onmouseout="this.style.color='var(--text-muted)'">Home</a>
+                            <a href="#how-it-works" onclick="document.getElementById('how-it-works').scrollIntoView({behavior: 'smooth'}); return false;"
                                 style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s;"
                                 onmouseover="this.style.color='var(--text-main)'"
                                 onmouseout="this.style.color='var(--text-muted)'">How it works</a>
-                            <a href="#"
+                            <a href="#" onclick="selectRole('doer'); renderView('registerForm'); return false;"
                                 style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s;"
                                 onmouseover="this.style.color='var(--text-main)'"
                                 onmouseout="this.style.color='var(--text-muted)'">Become Scout</a>
@@ -927,84 +821,197 @@
     </template>
 
     <template id="tmpl-create-task">
-        <div class="req-glass-card slide-up-anim req-max-w-card">
-            <h2 class="req-title"><i class="fa-solid fa-crosshairs"></i> New Targeting Request</h2>
-            <form id="form-create-task" class="req-form">
-                <div class="req-form-group">
-                    <label>Target Designation</label>
-                    <input type="text" id="task-title" class="req-input-premium" required
-                        placeholder="e.g. Verify Parker's queue length" />
-                </div>
-                <div class="req-form-group">
-                    <label>Intelligence Details</label>
-                    <textarea id="task-desc" class="req-input-premium" required rows="3"
-                        placeholder="Need a 10s video of the main entrance to check current capacity..."></textarea>
-                </div>
-                <div class="req-form-group">
-                    <label>Coordinates (Location)</label>
-                    <div class="req-map-radar" id="map-picker">
-                        <div class="req-radar-pulse"></div>
-                        <i class="fa-solid fa-location-crosshairs req-radar-pin"></i>
-                        <span class="req-radar-text">Click to set target zone</span>
+        <div class="premium-task-wrapper slide-up-anim">
+            <div class="premium-glow-bg"></div>
+
+            <div class="req-glass-card premium-form-card">
+                <div class="req-header-special">
+                    <div class="req-icon-glow">
+                        <i class="fa-solid fa-satellite-dish"></i>
+                    </div>
+                    <div>
+                        <h2 class="req-title" style="margin-bottom: 0;">Deploy a Scout</h2>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem;">Create a verified location photo/video task</p>
                     </div>
                 </div>
-                <div class="req-form-row">
-                    <div class="req-form-group req-half">
-                        <label>Capture Mode</label>
-                        <div class="req-media-segmented" id="req-media-toggle">
-                            <input type="hidden" id="task-media" value="photo">
-                            <button type="button" class="req-seg-btn active" data-val="photo"><i
-                                    class="fa-solid fa-camera"></i> Photo</button>
-                            <button type="button" class="req-seg-btn" data-val="video"><i class="fa-solid fa-video"></i>
-                                Video</button>
+
+                <form id="form-create-task" class="req-form premium-grid-form">
+                    <div class="req-col-left">
+                        <div class="req-form-group">
+                            <label><i class="fa-solid fa-tag" style="color: var(--brand-cyan); margin-right: 5px;"></i> Task Title</label>
+                            <input type="text" id="task-title" class="req-input-premium" required
+                                placeholder="e.g. Check queue at Lajpat Nagar market" />
+                        </div>
+                        <div class="req-form-group" style="margin-top: 1.5rem;">
+                            <label><i class="fa-solid fa-align-left" style="color: var(--brand-cyan); margin-right: 5px;"></i> Description</label>
+                            <textarea id="task-desc" class="req-input-premium" required rows="4"
+                                placeholder="Describe exactly what you need the scout to capture..."></textarea>
+                        </div>
+
+                        <div class="req-form-row" style="margin-top: 1.5rem;">
+                            <div class="req-form-group req-half">
+                                <label><i class="fa-solid fa-camera-retro" style="color: var(--brand-cyan); margin-right: 5px;"></i> Capture Mode</label>
+                                <div class="req-media-segmented" id="req-media-toggle">
+                                    <input type="hidden" id="task-media" value="photo">
+                                    <button type="button" class="req-seg-btn active" data-val="photo"><i class="fa-solid fa-camera"></i> Photo</button>
+                                    <button type="button" class="req-seg-btn" data-val="video"><i class="fa-solid fa-video"></i> Video</button>
+                                </div>
+                            </div>
+                            <div class="req-form-group req-half">
+                                <label><i class="fa-regular fa-calendar-xmark" style="color: var(--brand-cyan); margin-right: 5px;"></i> Deadline</label>
+                                <input type="datetime-local" id="task-deadline" class="req-input-premium" required />
+                            </div>
                         </div>
                     </div>
-                    <div class="req-form-group req-half">
-                        <label>Bounty ($)</label>
-                        <div class="req-budget-wrapper">
-                            <span class="req-budget-currency">$</span>
-                            <input type="number" id="task-budget" class="req-input-premium req-input-budget" min="5"
-                                step="1" required placeholder="15" />
+
+                    <div class="req-col-right" style="display: flex; flex-direction: column;">
+                        <div class="req-form-group" style="height: 100%; display: flex; flex-direction: column;">
+                            <label><i class="fa-solid fa-location-crosshairs" style="color: var(--brand-cyan); margin-right: 5px;"></i> Target Location</label>
+                            <div style="position: relative; margin-bottom: 0.8rem;">
+                                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                                <input type="text" id="task-location-search" class="req-input-premium" placeholder="Search location (e.g. Connaught Place)" style="padding-left: 2.8rem; width: 100%;" />
+                            </div>
+                            <div class="req-map-radar" id="map-picker" style="flex: 1; min-height: 220px; border-radius: 12px;">
+                                <div class="req-radar-pulse"></div>
+                                <i class="fa-solid fa-location-dot req-radar-pin"></i>
+                                <span class="req-radar-text">Search a location or pin the target</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="req-form-actions">
-                    <button type="button" class="req-btn-cancel" id="btn-cancel-task">Abort</button>
-                    <button type="submit" class="req-btn-primary">Initialize Scan</button>
-                </div>
-            </form>
+
+                    <div class="req-form-actions full-width-actions">
+                        <button type="button" class="req-btn-cancel" id="btn-cancel-task">Cancel</button>
+                        <button type="submit" class="req-btn-primary premium-submit-btn">
+                            Deploy Scout <i class="fa-solid fa-paper-plane" style="margin-left: 5px;"></i>
+                        </button>
+                    </div> 
+                </form>
+            </div>
         </div>
     </template>
-
     <template id="tmpl-doer-dashboard">
-        <div class="split-view slide-up-anim layout-mobile-rev">
-            <!-- Left Side: Radar Map -->
-            <div class="glass-card map-radar">
-                <div class="radar-scan"></div>
-                <h3><i class="fa-solid fa-satellite-dish"></i> Radar: Nearby Tasks</h3>
-                <div id="radar-markers-container"
-                    style="position:relative; height: 300px; margin-top: 1rem; background: var(--glass-bg-darker); border-radius: 12px; overflow: hidden; border: 1px solid var(--glass-border)">
-                    <!-- Markers injected by JS -->
+        <div class="slide-up-anim" style="margin-bottom: 2rem;">
+            <h2 style="font-size: 1.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-crosshairs" style="color: var(--brand-cyan);"></i> Scout Command
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Scanning sector for active bounties.</p>
+        </div>
+
+        <div class="dash-middle-row slide-up-anim" style="margin-bottom: 2rem; grid-template-columns: 2fr 1fr;">
+            
+            <div class="dash-wallet-card" style="min-height: 160px; background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(16, 185, 129, 0.15)); border: 1px solid rgba(16, 185, 129, 0.3);">
+                <div class="dash-wallet-bg-orb orb-1" style="background: rgba(16, 185, 129, 0.3); width: 300px; height: 300px; top: -100px; right: 0;"></div>
+                <div style="position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: flex-end; height: 100%; flex-wrap: wrap; gap: 1.5rem;">
+                    <div>
+                        <div style="font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;"><i class="fa-solid fa-wallet" style="color: var(--accent);"></i> Available Balance</div>
+                        <div style="font-size: 2.2rem; font-weight: 800; color: var(--text-main); line-height: 1; letter-spacing: -1px;" id="doer-wallet-display">₹0<span style="font-size: 2rem; color: var(--text-muted);">.00</span></div>
+                    </div>
+                    <button class="dash-wallet-add-btn hover-lift" onclick="alert('Withdrawal flow will be linked to Razorpay/UPI in the backend phase!')" style="padding: 0.8rem 1.5rem; font-size: 1rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);">
+                        Cash Out <i class="fa-solid fa-money-bill-transfer" style="margin-left: 5px;"></i>
+                    </button>
                 </div>
             </div>
 
-            <!-- Right Side: Stats & Selected Task -->
-            <div>
-                <div class="glass-card mb-4"
-                    style="display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05))">
-                    <div>
-                        <span style="font-size:0.85rem; color:var(--text-muted)">Current Balance</span>
-                        <h2 style="color:var(--accent); margin:0">$120.50</h2>
-                    </div>
-                    <div style="text-align:right">
-                        <span style="font-size:0.85rem; color:var(--text-muted)">Trust Score</span>
-                        <h3 style="margin:0"><i class="fa-solid fa-star" style="color:var(--warning)"></i> 4.9/5.0</h3>
+            <div class="dash-stat-card" style="justify-content: center; align-items: center; text-align: center; background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.2);">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); color: var(--warning); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 0.8rem; box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.2rem;">Trust Score</div>
+                <div style="font-size: 2.2rem; font-weight: 700; color: var(--text-main); line-height: 1;">4.9<span style="font-size: 1.2rem; color: var(--text-muted);">/5.0</span></div>
+            </div>
+        </div>
+
+        <div class="split-view slide-up-anim" style="animation-delay: 0.2s;">
+            
+            <div class="glass-card" style="padding: 1.5rem; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(6, 182, 212, 0.3); border-top: 1px solid rgba(6, 182, 212, 0.5); box-shadow: 0 15px 35px rgba(0,0,0,0.4), inset 0 0 20px rgba(6, 182, 212, 0.1);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-main); font-weight: 600;">
+                        <i class="fa-solid fa-satellite-dish" style="color: var(--brand-cyan); margin-right: 0.5rem;"></i> Local Radar
+                    </h3>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3); padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600; color: var(--brand-cyan); line-height: 1;">
+                        <div style="width: 8px; height: 8px; min-width: 8px; background: var(--brand-cyan); border-radius: 50%; box-shadow: 0 0 8px var(--brand-cyan); animation: pulse 2s infinite; flex-shrink: 0;"></div>
+                        <span style="line-height: 1;">LIVE</span>
                     </div>
                 </div>
+                
+                <div style="position: relative; height: 350px; background-color: #050810; background-image: radial-gradient(circle, rgba(6, 182, 212, 0.15) 1px, transparent 1px), radial-gradient(circle, rgba(6, 182, 212, 0.15) 1px, transparent 1px); background-size: 40px 40px; background-position: 0 0, 20px 20px; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 50px rgba(0,0,0,0.8);">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 50%;"></div>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border: 1px dashed rgba(6, 182, 212, 0.2); border-radius: 50%;"></div>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; border: 1px solid rgba(6, 182, 212, 0.1); border-radius: 50%;"></div>
+                    <div class="radar-scan" style="background: conic-gradient(from 0deg, transparent 70%, rgba(6, 182, 212, 0.5) 100%);"></div>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 12px; height: 12px; background: var(--brand-cyan); border-radius: 50%; box-shadow: 0 0 20px var(--brand-cyan); z-index: 2;"></div>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 30px; height: 30px; border: 1px solid var(--brand-cyan); border-radius: 50%; animation: pulse 2s infinite; z-index: 1;"></div>
+                    <div id="radar-markers-container" style="position: absolute; inset: 0; z-index: 10;"></div>
+                </div>
+            </div>
 
-                <div class="glass-card" id="doer-task-action-panel">
-                    <p style="text-align:center; color: var(--text-muted); margin: 2rem 0;">Click a pin on the radar to
-                        view task details.</p>
+            <div style="display: flex; flex-direction: column; height: 100%;">
+                <div class="glass-card" id="doer-task-action-panel" style="flex: 1; display: flex; flex-direction: column; background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 1.5rem; height: 100%; min-height: 400px; max-height: 440px;">
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.2rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <div style="display: flex; gap: 1.5rem;">
+                            <button id="tab-available" onclick="window.switchDoerTab('available')" style="background: transparent; border: none; border-bottom: 2px solid var(--brand-purple); color: var(--text-main); font-size: 1.05rem; font-weight: 600; padding-bottom: 0.5rem; cursor: pointer; transition: all 0.3s;">
+                                Available Bounties
+                            </button>
+                            <button id="tab-history" onclick="window.switchDoerTab('history')" style="background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--text-muted); font-size: 1.05rem; font-weight: 600; padding-bottom: 0.5rem; cursor: pointer; transition: all 0.3s;">
+                                History
+                            </button>
+                        </div>
+                        <span id="doer-tab-badge" style="font-size: 0.75rem; background: rgba(168, 85, 247, 0.15); color: #c084fc; padding: 0.3rem 0.8rem; border-radius: 50px; font-weight: 600; border: 1px solid rgba(168, 85, 247, 0.3); margin-bottom: 0.5rem; transition: all 0.3s;">
+                            3 Nearby
+                        </span>
+                    </div>
+
+                    <div style="overflow-y: auto; padding-right: 0.5rem; display: flex; flex-direction: column; flex: 1;">
+                        
+                        <div id="list-available" style="display: flex; flex-direction: column; gap: 0.8rem;">
+                            <div class="hover-lift" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 1rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.3s;">
+                                <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--brand-cyan);"></div>
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                                    <div>
+                                        <div style="font-size: 0.7rem; color: var(--brand-cyan); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.3rem;"><i class="fa-solid fa-camera"></i> Photo Audit</div>
+                                        <h4 style="color: var(--text-main); font-size: 1rem; margin: 0;">Retail Display Check</h4>
+                                    </div>
+                                    <div style="font-size: 1.15rem; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 0.2rem 0.6rem; border-radius: 8px;">₹250</div>
+                                </div>
+                                <div style="display: flex; gap: 1.2rem; font-size: 0.8rem; color: var(--text-muted);">
+                                    <span><i class="fa-solid fa-location-arrow"></i> 1.2 km away</span>
+                                    <span style="color: #fbbf24;"><i class="fa-regular fa-clock"></i> Expires in 2h</span>
+                                </div>
+                            </div>
+                            <div class="hover-lift" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 1rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.3s;">
+                                <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--brand-purple);"></div>
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                                    <div>
+                                        <div style="font-size: 0.7rem; color: var(--brand-purple); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.3rem;"><i class="fa-solid fa-video"></i> Video Walkthrough</div>
+                                        <h4 style="color: var(--text-main); font-size: 1rem; margin: 0;">Real Estate Exterior</h4>
+                                    </div>
+                                    <div style="font-size: 1.15rem; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 0.2rem 0.6rem; border-radius: 8px;">₹500</div>
+                                </div>
+                                <div style="display: flex; gap: 1.2rem; font-size: 0.8rem; color: var(--text-muted);">
+                                    <span><i class="fa-solid fa-location-arrow"></i> 3.5 km away</span>
+                                    <span><i class="fa-regular fa-clock"></i> Expires in 5h</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="list-history" style="display: none; flex-direction: column; gap: 0.8rem; animation: dashContentIn 0.3s ease forwards;">
+                            <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 14px; padding: 1rem; position: relative; overflow: hidden;">
+                                <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #10b981;"></div>
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                                    <div>
+                                        <div style="font-size: 0.7rem; color: #10b981; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.3rem;"><i class="fa-solid fa-circle-check"></i> Verified</div>
+                                        <h4 style="color: var(--text-main); font-size: 1rem; margin: 0; text-decoration: line-through; opacity: 0.7;">Billboard Audit</h4>
+                                    </div>
+                                    <div style="font-size: 1.15rem; font-weight: 700; color: #10b981;">+₹150</div>
+                                </div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                                    <span><i class="fa-regular fa-calendar-check"></i> Completed on Mar 27, 2026</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
             </div>
         </div>
@@ -1021,7 +1028,7 @@
                 <div class="vf-overlay">
                     <div class="crosshair"></div>
                     <div class="gps-watermark">
-                        <i class="fa-solid fa-location-crosshairs"></i> Lat: 40.7128, Lng: -74.0060<br>
+                        <i class="fa-solid fa-location-crosshairs"></i> <span id="capture-gps-display">Acquiring GPS...</span><br>
                         <i class="fa-solid fa-clock"></i> <span id="capture-timestamp"></span><br>
                         <i class="fa-solid fa-shield-halved"></i> GroundLens Verified
                     </div>
@@ -1049,67 +1056,68 @@
 
     <template id="tmpl-admin-dashboard">
         <div class="slide-up-anim">
-            <h2 style="margin-bottom:2rem;"><i class="fa-solid fa-chart-line"></i> Platform Overview</h2>
-
-            <!-- Analytics Cards -->
-            <div
-                style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                <div class="glass-card hover-lift" style="text-align:center; padding:1.5rem">
-                    <i class="fa-solid fa-users" style="font-size:2rem; color:var(--primary); margin-bottom:1rem;"></i>
-                    <h3 style="margin:0">1,204</h3>
-                    <span style="font-size:0.8rem; color:var(--text-muted)">Active Users</span>
-                </div>
-                <div class="glass-card hover-lift" style="text-align:center; padding:1.5rem">
-                    <i class="fa-solid fa-camera-retro"
-                        style="font-size:2rem; color:var(--accent); margin-bottom:1rem;"></i>
-                    <h3 style="margin:0">856</h3>
-                    <span style="font-size:0.8rem; color:var(--text-muted)">Verified Doers</span>
-                </div>
-                <div class="glass-card hover-lift" style="text-align:center; padding:1.5rem">
-                    <i class="fa-solid fa-list-check"
-                        style="font-size:2rem; color:var(--warning); margin-bottom:1rem;"></i>
-                    <h3 style="margin:0" id="admin-total-tasks">0</h3>
-                    <span style="font-size:0.8rem; color:var(--text-muted)">Total Tasks</span>
-                </div>
-                <div class="glass-card hover-lift" style="text-align:center; padding:1.5rem">
-                    <i class="fa-solid fa-triangle-exclamation"
-                        style="font-size:2rem; color:var(--danger); margin-bottom:1rem;"></i>
-                    <h3 style="margin:0">0</h3>
-                    <span style="font-size:0.8rem; color:var(--text-muted)">Active Disputes</span>
-                </div>
+            <div id="admin-gate" style="max-width:400px; margin:4rem auto; text-align:center;">
+                <h2 style="margin-bottom:1rem; color:var(--text-main);">Admin Access</h2>
+                <input type="password" id="admin-pin" placeholder="Enter admin PIN"
+                    style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); color:#f8fafc; padding:1rem; border-radius:12px; font-size:1rem; box-sizing:border-box; outline:none; margin-bottom:1rem;">
+                <button onclick="checkAdminPin()" style="width:100%; background:linear-gradient(135deg,#06b6d4,#8b5cf6); color:white; border:none; padding:1rem; border-radius:12px; font-weight:600; cursor:pointer;">Access Dashboard</button>
             </div>
-
-            <!-- Global Task List -->
-            <div class="glass-card">
-                <h3><i class="fa-solid fa-globe"></i> Global Tasks</h3>
-                <div class="table-responsive" style="margin-top:1.5rem; overflow-x:auto;">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Task ID</th>
-                                <th>Title</th>
-                                <th>Budget</th>
-                                <th>Status</th>
-                                <th>Doer Assigned</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="admin-task-list">
-                            <!-- Injected by JS -->
-                        </tbody>
-                    </table>
+            
+            <div id="admin-real-content" style="display:none;">
+                <h2 style="margin-bottom:2rem;"><i class="fa-solid fa-chart-line"></i> Platform Overview</h2>
+                
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <div class="glass-card hover-lift" style="text-align:center; padding:1.5rem">
+                        <i class="fa-solid fa-users" style="font-size:2rem; color:var(--primary); margin-bottom:1rem;"></i>
+                        <h3 style="margin:0">1,204</h3>
+                        <span style="font-size:0.8rem; color:var(--text-muted)">Active Users</span>
+                    </div>
+                    <div class="glass-card hover-lift" style="text-align:center; padding:1.5rem">
+                        <i class="fa-solid fa-camera-retro" style="font-size:2rem; color:var(--accent); margin-bottom:1rem;"></i>
+                        <h3 style="margin:0">856</h3>
+                        <span style="font-size:0.8rem; color:var(--text-muted)">Verified Doers</span>
+                    </div>
+                    <div class="glass-card hover-lift" style="text-align:center; padding:1.5rem">
+                        <i class="fa-solid fa-list-check" style="font-size:2rem; color:var(--warning); margin-bottom:1rem;"></i>
+                        <h3 style="margin:0" id="admin-total-tasks">0</h3>
+                        <span style="font-size:0.8rem; color:var(--text-muted)">Total Tasks</span>
+                    </div>
+                    <div class="glass-card hover-lift" style="text-align:center; padding:1.5rem">
+                        <i class="fa-solid fa-triangle-exclamation" style="font-size:2rem; color:var(--danger); margin-bottom:1rem;"></i>
+                        <h3 style="margin:0">0</h3>
+                        <span style="font-size:0.8rem; color:var(--text-muted)">Active Disputes</span>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Moderation Action Panel -->
-            <div id="admin-mod-panel" style="margin-top:2rem;"></div>
+                <div class="glass-card">
+                    <h3><i class="fa-solid fa-globe"></i> Global Tasks</h3>
+                    <div class="table-responsive" style="margin-top:1.5rem; overflow-x:auto;">
+                        <table class="admin-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-muted);">
+                                    <th style="padding: 1rem;">Task ID</th>
+                                    <th style="padding: 1rem;">Title</th>
+                                    <th style="padding: 1rem;">Budget</th>
+                                    <th style="padding: 1rem;">Status</th>
+                                    <th style="padding: 1rem;">Doer Assigned</th>
+                                    <th style="padding: 1rem;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-task-list">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="admin-mod-panel" style="margin-top:2rem;"></div>
+            </div> 
         </div>
     </template>
 
     <template id="tmpl-login-form">
         <div class="slide-up-anim"
             style="min-height: 70vh; display: flex; align-items: center; justify-content: center; position: relative;">
-            <button onclick="renderView('login')"
+            <button onclick="renderView('home')"
                 style="position: absolute; top: 2rem; left: 4rem; background: transparent; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 1rem; transition: color 0.2s;"
                 onmouseover="this.style.color='var(--text-main)'" onmouseout="this.style.color='var(--text-muted)'">
                 <i class="fa-solid fa-arrow-left"></i> Back to Home
@@ -1142,7 +1150,7 @@
                     <div>
                         <label
                             style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem; text-align: left;">Email</label>
-                        <input type="email" id="login-email" placeholder="you@example.com" value="user@groundlens.com"
+                        <input type="email" id="login-email" placeholder="you@example.com"
                             style="width: 100%; box-sizing: border-box; background: var(--input-bg); border: 1px solid var(--glass-border-strong); color: var(--text-main); padding: 1rem 1.2rem; border-radius: 12px; font-family: inherit; font-size: 1rem; outline: none; transition: border-color 0.2s;"
                             onfocus="this.style.borderColor='var(--brand-cyan)'"
                             onblur="this.style.borderColor='var(--glass-border-strong)'">
@@ -1152,7 +1160,7 @@
                         <label
                             style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem; text-align: left;">Password</label>
                         <div style="position: relative;">
-                            <input type="password" id="login-password" value="password123"
+                            <input type="password" id="login-password" placeholder="••••••••"
                                 style="width: 100%; box-sizing: border-box; background: var(--input-bg); border: 1px solid var(--glass-border-strong); color: var(--text-main); padding: 1rem 1.2rem; border-radius: 12px; font-family: inherit; font-size: 1rem; outline: none; transition: border-color 0.2s;"
                                 onfocus="this.style.borderColor='var(--brand-cyan)'"
                                 onblur="this.style.borderColor='var(--glass-border-strong)'">
@@ -1178,7 +1186,7 @@
     <template id="tmpl-register-form">
         <div class="slide-up-anim"
             style="min-height: 70vh; display: flex; align-items: center; justify-content: center; position: relative;">
-            <button onclick="renderView('login')"
+            <button onclick="renderView('home')"
                 style="position: absolute; top: 2rem; left: 4rem; background: transparent; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 1rem; transition: color 0.2s;"
                 onmouseover="this.style.color='var(--text-main)'" onmouseout="this.style.color='var(--text-muted)'">
                 <i class="fa-solid fa-arrow-left"></i> Back to Home
@@ -1326,7 +1334,7 @@
                     <div class="dash-user-avatar" id="dash-avatar">U</div>
                     <div class="dash-user-info">
                         <span class="dash-user-name" id="dash-user-name">User</span>
-                        <span class="dash-user-email" id="dash-user-email">user@email.com</span>
+                        <span class="dash-user-email" id="dash-user-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d0a5a3b5a290b5bdb1b9bcfeb3bfbd">[email&#160;protected]</a></span>
                     </div>
                 </div>
                 <a href="#" class="dash-nav-item dash-signout" id="dash-signout">
@@ -1340,10 +1348,154 @@
                     <!-- Dynamic sub-view content injected by JS -->
                 </div>
             </div>
+
+            <!-- Mobile Bottom Navigation (visible on phones only) -->
+            <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+                <a href="#" class="mobile-nav-item dash-nav-item active" data-view="dashboard">
+                    <i class="fa-solid fa-grid-2"></i>
+                    <span>Home</span>
+                </a>
+                <a href="#" class="mobile-nav-item dash-nav-item" data-view="post-task">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Post</span>
+                </a>
+                <a href="#" class="mobile-nav-item dash-nav-item" data-view="notifications">
+                    <i class="fa-solid fa-bell"></i>
+                    <span>Alerts</span>
+                </a>
+                <a href="#" class="mobile-nav-item dash-nav-item" data-view="wallet">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span>Wallet</span>
+                </a>
+                <a href="#" class="mobile-nav-item dash-nav-item" data-view="analytics">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Stats</span>
+                </a>
+            </nav>
         </div>
     </template>
 
-    <script type="module" src="app.js"></script>
-</body>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="module" src="app.js?v=3"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => console.log('ServiceWorker registration failed: ', err));
+            });
+        }
+    </script>
+    <script>
+        window.switchDoerTab = function(tabName) {
+            const tabAvail = document.getElementById('tab-available');
+            const tabHist = document.getElementById('tab-history');
+            const listAvail = document.getElementById('list-available');
+            const listHist = document.getElementById('list-history');
+            const badge = document.getElementById('doer-tab-badge');
 
+            // Safety check in case the DOM hasn't loaded
+            if(!tabAvail) return;
+
+            if (tabName === 'available') {
+                tabAvail.style.borderBottom = '2px solid var(--brand-purple)';
+                tabAvail.style.color = 'var(--text-main)';
+                tabHist.style.borderBottom = '2px solid transparent';
+                tabHist.style.color = 'var(--text-muted)';
+                
+                listAvail.style.display = 'flex';
+                listHist.style.display = 'none';
+                
+                badge.innerText = '3 Nearby';
+                badge.style.background = 'rgba(168, 85, 247, 0.15)';
+                badge.style.color = '#c084fc';
+                badge.style.borderColor = 'rgba(168, 85, 247, 0.3)';
+            } else {
+                tabHist.style.borderBottom = '2px solid var(--brand-cyan)';
+                tabHist.style.color = 'var(--text-main)';
+                tabAvail.style.borderBottom = '2px solid transparent';
+                tabAvail.style.color = 'var(--text-muted)';
+                
+                listAvail.style.display = 'none';
+                listHist.style.display = 'flex';
+                
+                badge.innerText = '12 Completed';
+                badge.style.background = 'rgba(6, 182, 212, 0.15)';
+                badge.style.color = 'var(--brand-cyan)';
+                badge.style.borderColor = 'rgba(6, 182, 212, 0.3)';
+            }
+        };
+    </script>
+    <script src="./pwa.js"></script>
+    <div id="camera-overlay" class="slide-up-anim" style="display: none; position: fixed; inset: 0; z-index: 99999; background: #000; flex-direction: column;">
+        
+        <div style="padding: 1.5rem 1rem; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); position: absolute; top: 0; width: 100%; box-sizing: border-box; z-index: 10;">
+            <button onclick="window.closeCamera()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(5px);"><i class="fa-solid fa-xmark" style="font-size: 1.2rem;"></i></button>
+            <div style="text-align: center;">
+                <div style="font-size: 0.75rem; color: var(--brand-cyan); font-weight: 800; letter-spacing: 2px;">SECURE CAPTURE</div>
+                <div id="cam-task-title" style="font-size: 1rem; color: white; font-weight: 600;">Target Location</div>
+            </div>
+            <div style="width: 40px;"></div>
+        </div>
+
+        <div style="flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #111;">
+            <video id="live-camera-feed" autoplay playsinline style="min-width: 100%; min-height: 100%; object-fit: cover;"></video>
+            
+            <div style="position: absolute; inset: 15%; border: 2px solid rgba(6, 182, 212, 0.3); pointer-events: none;">
+                <div style="position: absolute; top: -2px; left: -2px; width: 30px; height: 30px; border-top: 3px solid var(--brand-cyan); border-left: 3px solid var(--brand-cyan);"></div>
+                <div style="position: absolute; top: -2px; right: -2px; width: 30px; height: 30px; border-top: 3px solid var(--brand-cyan); border-right: 3px solid var(--brand-cyan);"></div>
+                <div style="position: absolute; bottom: -2px; left: -2px; width: 30px; height: 30px; border-bottom: 3px solid var(--brand-cyan); border-left: 3px solid var(--brand-cyan);"></div>
+                <div style="position: absolute; bottom: -2px; right: -2px; width: 30px; height: 30px; border-bottom: 3px solid var(--brand-cyan); border-right: 3px solid var(--brand-cyan);"></div>
+            </div>
+            
+            <div id="cam-gps-status" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: #10b981; padding: 5px 15px; border-radius: 50px; font-size: 0.8rem; font-family: monospace; border: 1px solid #10b981; backdrop-filter: blur(4px);">
+                <i class="fa-solid fa-satellite-dish fa-fade"></i> Acquiring GPS...
+            </div>
+        </div>
+
+        <div style="padding: 2rem; padding-bottom: 3rem; display: flex; justify-content: center; align-items: center; background: #000;">
+            <button id="btn-capture" onclick="window.takeSnapshot()" style="width: 75px; height: 75px; border-radius: 50%; background: transparent; border: 4px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s;">
+                <div style="width: 55px; height: 55px; background: white; border-radius: 50%;"></div>
+            </button>
+        </div>
+        
+        <canvas id="capture-canvas" style="display: none;"></canvas>
+    </div>
+    <script>
+    window.checkAdminPin = function() {
+        const pin = document.getElementById('admin-pin')?.value;
+        if (pin === 'GL2025') {
+            document.getElementById('admin-gate').style.display = 'none';
+            document.getElementById('admin-real-content').style.display = 'block';
+            if(window.loadAdminData) window.loadAdminData(); 
+        } else {
+            alert('Incorrect PIN');
+        }
+    };
+
+    window.submitWaitlist = async function() {
+        const email = document.getElementById('waitlist-email')?.value?.trim();
+        const msg = document.getElementById('waitlist-msg');
+        if (!email || !email.includes('@')) {
+            if (msg) msg.style.color = '#ef4444', msg.textContent = 'Please enter a valid email.';
+            return;
+        }
+        if (window.firebaseModules && window._db) {
+            try {
+                const { addDoc, collection, serverTimestamp } = window.firebaseModules;
+                await addDoc(collection(window._db, 'waitlist'), {
+                    email,
+                    createdAt: serverTimestamp()
+                });
+            } catch(e) { console.warn('waitlist save:', e.message); }
+        }
+        if (msg) {
+            msg.style.color = '#10b981';
+            msg.textContent = "You're on the list! We'll reach out when we launch.";
+        }
+        document.getElementById('waitlist-email').value = '';
+    };
+    </script>
+</body>
 </html>
